@@ -1,0 +1,30 @@
+# Paste this into your Backstage app's app-config.yaml so it discovers
+# everything in this repo: the org, the catalog, and the golden-path template.
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location, Template, Group, User]
+
+  locations:
+    # teams & users
+    - type: url
+      target: https://github.com/YOURORG/idp-demo/blob/main/catalog/org.yaml
+
+    # demo services
+    - type: url
+      target: https://github.com/YOURORG/idp-demo/blob/main/catalog/catalog-info.yaml
+
+    # the golden path (shows up under "Create")
+    - type: url
+      target: https://github.com/YOURORG/idp-demo/blob/main/templates/backend-service/template.yaml
+      rules:
+        - allow: [Template]
+
+  # auto-discovery: any repo in the org with a catalog-info.yaml registers itself
+  providers:
+    github:
+      myorg:
+        organization: YOURORG
+        catalogPath: /catalog-info.yaml
+        schedule:
+          frequency: { minutes: 30 }
+          timeout: { minutes: 3 }

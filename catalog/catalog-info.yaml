@@ -1,0 +1,69 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: commerce
+  description: Everything behind buying something
+spec:
+  owner: team-payments
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: checkout-api
+  description: Handles cart checkout and payments
+  annotations:
+    github.com/project-slug: myorg/checkout-api
+    backstage.io/techdocs-ref: dir:.
+  tags: [node, payments]
+spec:
+  type: service
+  lifecycle: production
+  owner: team-payments
+  system: commerce
+  providesApis: [checkout-api-rest]
+  dependsOn:
+    - resource:default/payments-db
+    - component:default/notifications-api
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: notifications-api
+  description: Sends transactional emails and push notifications
+  annotations:
+    github.com/project-slug: myorg/notifications-api
+  tags: [node]
+spec:
+  type: service
+  lifecycle: production
+  owner: team-payments
+  system: commerce
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: checkout-api-rest
+  description: REST API for the checkout flow
+spec:
+  type: openapi
+  lifecycle: production
+  owner: team-payments
+  system: commerce
+  definition: |
+    openapi: 3.0.0
+    info: { title: Checkout API, version: 1.0.0 }
+    paths:
+      /checkout:
+        post: { summary: Start a checkout, responses: { '200': { description: ok } } }
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: payments-db
+  description: Postgres database for payments
+  tags: [postgres]
+spec:
+  type: database
+  lifecycle: production
+  owner: team-payments
+  system: commerce

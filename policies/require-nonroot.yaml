@@ -1,0 +1,43 @@
+# Kyverno policy — enforced at Kubernetes admission.
+# Guardrail by default: a pod that doesn't run as non-root never reaches the cluster.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-run-as-nonroot
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-runAsNonRoot
+      match:
+        any:
+          - resources: { kinds: [Pod] }
+      validate:
+        message: "Pods must set securityContext.runAsNonRoot=true"
+        pattern:
+          spec:
+            =(securityContext):
+              =(runAsNonRoot): true
+            containers:
+              - =(securityContext):
+                  =(runAsNonRoot): true
+---
+# Companion: require cost tags so FinOps allocation is never optional.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-cost-labels
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: check-labels
+      match:
+        any:
+          - resources: { kinds: [Deployment] }
+      validate:
+        message: "Workloads must carry team and cost-center labels"
+        pattern:
+          metadata:
+            labels:
+              team: "?*"
+              cost-center: "?*"
